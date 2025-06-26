@@ -205,7 +205,7 @@ async def chat_endpoint(req: ChatRequest):
                 passed=(g != failed),
                 timestamp=gr_timestamp,
             ))
-        refusal = "Sorry, I can only answer questions related to airline travel."
+        refusal = "Desculpe, só posso responder perguntas relacionadas a viagens aéreas."
         state["input_items"].append({"role": "assistant", "content": refusal})
         return ChatResponse(
             conversation_id=conversation_id,
@@ -316,7 +316,13 @@ async def chat_endpoint(req: ChatRequest):
         )
 
     state["input_items"] = result.to_input_list()
-    state["current_agent"] = current_agent.name
+
+    # Se o agente atual é o FAQ agent, volte para o triage_agent na próxima rodada
+    if current_agent.name == faq_agent.name:
+        state["current_agent"] = triage_agent.name
+    else:
+        state["current_agent"] = current_agent.name
+
     conversation_store.save(conversation_id, state)
 
     # Build guardrail results: mark failures (if any), and any others as passed
